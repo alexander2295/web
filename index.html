@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador de Eventos GA4</title>
+  <style>
+    body { font-family: sans-serif; margin: 30px; }
+    input, button { padding: 10px; margin: 5px 0; }
+    #form_pagar, #confirmar_retiro { display: none; border: 1px solid #ccc; padding: 15px; margin-top: 10px; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+
+  <h1>Simulador de Eventos con Google Analytics</h1>
+
+  <label for="cliente_id">ID del Cliente:</label><br>
+  <input type="text" id="cliente_id" placeholder="Ej: cliente_001"><br>
+  <button onclick="establecerCliente()">Establecer Cliente</button>
+  <p id="estado">Cliente no establecido</p>
+
+  <hr>
+
+  <button onclick="mostrarFormularioPago()">Pagar Diferencia</button>
+  <button onclick="mostrarConfirmacionRetiro()">Retirar Envío</button>
+
+  <!-- Formulario de pago -->
+  <div id="form_pagar">
+    <h3>Ingresar valor adicional</h3>
+    <input type="number" id="valor_diferencia" placeholder="Ej: 5.00"><br>
+    <button onclick="pagarDiferencia()">Pagar</button>
+    <button onclick="cancelarPago()">Cancelar</button>
+  </div>
+
+  <!-- Confirmación de retiro -->
+  <div id="confirmar_retiro">
+    <h3>¿Deseas retirar este pedido sin pagar?</h3>
+    <button onclick="confirmarRetiro()">Sí, retirar</button>
+    <button onclick="cancelarRetiro()">Cancelar</button>
+  </div>
+
+  <script>
+    let cliente_id = null;
+
+    function establecerCliente() {
+      const input = document.getElementById("cliente_id").value.trim();
+      if (input) {
+        cliente_id = input;
+        document.getElementById("estado").innerText = `Cliente activo: ${cliente_id}`;
+        gtag('config', 'G-XXXXXXXXXX', {
+          'user_id': cliente_id
+        });
+        console.log("Cliente establecido:", cliente_id);
+      }
+    }
+
+    function mostrarFormularioPago() {
+      document.getElementById("form_pagar").style.display = "block";
+      document.getElementById("confirmar_retiro").style.display = "none";
+    }
+
+    function pagarDiferencia() {
+      const valor = document.getElementById("valor_diferencia").value;
+      if (!cliente_id) return alert("Primero debes establecer el cliente");
+      gtag('event', 'click_pagar_diferencia', {
+        user_id: cliente_id,
+        valor: parseFloat(valor)
+      });
+      console.log(`Cliente ${cliente_id} pagó ${valor}`);
+      document.getElementById("form_pagar").style.display = "none";
+      document.getElementById("valor_diferencia").value = "";
+    }
+
+    function cancelarPago() {
+      document.getElementById("form_pagar").style.display = "none";
+      console.log(`Cliente ${cliente_id} canceló el pago`);
+      gtag('event', 'cancelar_pagar_diferencia', {
+        user_id: cliente_id
+      });
+    }
+
+    function mostrarConfirmacionRetiro() {
+      document.getElementById("confirmar_retiro").style.display = "block";
+      document.getElementById("form_pagar").style.display = "none";
+    }
+
+    function confirmarRetiro() {
+      if (!cliente_id) return alert("Primero debes establecer el cliente");
+      console.log(`Cliente ${cliente_id} retiró el pedido`);
+      gtag('event', 'retirar_envio', {
+        user_id: cliente_id
+      });
+      document.getElementById("confirmar_retiro").style.display = "none";
+    }
+
+    function cancelarRetiro() {
+      document.getElementById("confirmar_retiro").style.display = "none";
+      console.log(`Cliente ${cliente_id} canceló el retiro`);
+      gtag('event', 'cancelar_retirar_envio', {
+        user_id: cliente_id
+      });
+    }
+  </script>
+
+  <!-- Script de Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+</body>
+</html>
